@@ -1,0 +1,88 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id    String @id @default(cuid())
+  email String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  password Password?
+  notes    Note[]
+
+  events   Event[]
+  attending Attendee[]
+}
+
+model Password {
+  hash String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String @unique
+}
+
+model Event {
+  id          String       @id @default(cuid())
+  title       String  
+  description String
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId      String       
+
+  eventItems  EventItem[]
+  attendees   Attendee[]
+}
+
+model EventItem {
+  id          String    @id @default(cuid())
+  name        String
+  note        String
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  attendee    Attendee  @relation(fields: [attendeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  attendeeId  String
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: Cascade) 
+  eventId     String      
+}
+
+model Attendee {
+  id          String    @id @default(cuid())
+  attending   Boolean   @default(false)
+  confirmed   Boolean   @default(false)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId      String
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: Cascade) 
+  eventId     String 
+
+  eventItems  EventItem[]
+}
+
+// ------------------------------------------------------------------
+
+model Note {
+  id    String @id @default(cuid())
+  title String
+  body  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String
+}
